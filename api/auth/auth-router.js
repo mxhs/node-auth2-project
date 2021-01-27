@@ -29,6 +29,9 @@ router.post("/login", async (req, res) => {
 		if (bcryptjs.compareSync(password, user.password)) {
 			//build the token and send it back
 			const token = generateToken(user);
+			res.status(200).json({ message: "Welcome", token });
+		} else {
+			res.status(401).json({ message: "invalid login info" });
 		}
 	} catch (err) {
 		next(err);
@@ -42,9 +45,11 @@ function generateToken(user) {
 	};
 	const options = {
 		expiresIn: "1h",
-  }
-  
-  const 
+	};
+	// ? What purpose does separating the secrets serve in a separate folder vs done like this?
+	const secret = process.env.JWT_SECRET;
+
+	return jwt.sign(payload, secret, options);
 }
 
 module.exports = router;

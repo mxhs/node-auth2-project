@@ -1,6 +1,7 @@
 const Auth = require("./auth-model");
+const jwt = require("jsonwebtoken");
 
-module.exports = { validateRegister };
+module.exports = { validateRegister, authenticateUser };
 
 async function validateRegister(req, res, next) {
 	// checking that all the correct keys of credentials are there
@@ -39,4 +40,31 @@ function checkKeys(obj) {
 		}
 	});
 	return invalidKey;
+}
+
+async function authenticateUser(req, res, next) {
+	try {
+		const token = req.headers.authorization;
+		if (token) {
+			// ! decoded is the decoded jwt PAYLOAD
+			jwt.verify(token, process.env.JWT_SECRET, async (err, decoded) => {
+				if (err) {
+					res
+						.status(401)
+						.json(
+							"insert lord of the rings gandalf quote *staff slams to ground*"
+						);
+				} else {
+					// ! decoded is the payload of the logged in user
+					const { department } = await Auth.findBy({
+						username: decoded.username,
+					});
+					req.body.department = department;
+					next();
+				}
+			});
+		}
+	} catch (err) {
+		next(err);
+	}
 }
